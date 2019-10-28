@@ -31,7 +31,8 @@ train_data_gen = train_image_generator.flow_from_directory(batch_size=batch_size
                                                            shuffle=False,
                                                            color_mode="grayscale",
                                                            target_size=(IMG_HEIGHT, IMG_WIDTH),
-                                                           class_mode='binary')
+                                                           class_mode='binary',
+                                                           classes=["Positives", "Negatives"])
 
 sample_training_images, _ = next(train_data_gen)
 
@@ -50,17 +51,17 @@ def plotImages(images_arr):
 model = Sequential([
     Conv2D(16, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH, 1)),
     MaxPooling2D(),
-    # Conv2D(32, 3, padding='same', activation='relu'),
-    # MaxPooling2D(),
-    # Conv2D(64, 3, padding='same', activation='relu'),
-    # MaxPooling2D(),
+    Conv2D(32, 3, padding='same', activation='relu'),
+    MaxPooling2D(),
+    Conv2D(64, 3, padding='same', activation='relu'),
+    MaxPooling2D(),
     Flatten(),
-    Dense(2048, activation='relu'),
-    Dense(1, activation='sigmoid')
+    Dense(512, activation='relu'),
+    Dense(2, activation='softmax'),
 ])
 
 model.compile(optimizer='adam',
-              loss='binary_crossentropy',
+              loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
 model.summary()
@@ -72,7 +73,6 @@ model.summary()
 
 history = model.fit_generator(
     train_data_gen,
-    #steps_per_epoch= // batch_size,
     epochs=10
 )
 
