@@ -14,7 +14,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-train_dir = os.path.join(r'/Users/stefancosmin/Faculty/IP/DataSet1')
+dirname = os.path.dirname(os.path.dirname(__file__))
+os.path.join(dirname, 'Images')
+train_dir = os.path.join(dirname, 'Images')
 
 train_image_generator = keras.preprocessing.image.ImageDataGenerator(
     rescale=1. / 255,
@@ -75,6 +77,8 @@ history = model.fit_generator(
     train_data_gen,
     epochs=10
 )
+
+model.save('./ResultingModels/ModelFromImageProcessorV2.h5')
 
 acc = history.history['accuracy']
 # val_acc = history.history['val_accuracy']
