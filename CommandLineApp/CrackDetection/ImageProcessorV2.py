@@ -24,19 +24,22 @@ train_image_generator = keras.preprocessing.image.ImageDataGenerator(
     width_shift_range=.15,
     height_shift_range=.15,
     horizontal_flip=True,
-    zoom_range=0.5,
+    zoom_range=0.3,
     validation_split=0.2
 )  # Generator for our training data)
 
 train_data_gen = train_image_generator.flow_from_directory(batch_size=batch_size,
                                                            directory=train_dir,
-                                                           shuffle=False,
+                                                           shuffle=True,
                                                            color_mode="grayscale",
                                                            target_size=(IMG_HEIGHT, IMG_WIDTH),
                                                            class_mode='binary',
                                                            classes=["Positives", "Negatives"])
 
-sample_training_images, _ = next(train_data_gen)
+# augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+
+
+# sample_training_images, _ = next(train_data_gen)
 
 
 def plotImages(images_arr):
@@ -48,21 +51,25 @@ def plotImages(images_arr):
     plt.tight_layout()
     plt.show()
 
+# plotImages(augmented_images)
 # plotImages(sample_training_images[:5])
 
 model = Sequential([
-    Conv2D(16, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH, 1)),
+    Conv2D(16, 1, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH, 1)),
     MaxPooling2D(),
-    Conv2D(32, 3, padding='same', activation='relu'),
+    Dropout(0.2),
+    Conv2D(32, 1, padding='same', activation='relu'),
     MaxPooling2D(),
-    Conv2D(64, 3, padding='same', activation='relu'),
+    Conv2D(64, 1, padding='same', activation='relu'),
     MaxPooling2D(),
     Flatten(),
-    Dense(512, activation='relu'),
+    Dropout(0.2),
+    Dense(64, activation='relu'),
     Dense(2, activation='softmax'),
 ])
 
-model.compile(optimizer='adam',
+
+model.compile(optimizer=keras.optimizers.Adam(lr=1e-3),
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
@@ -77,6 +84,9 @@ history = model.fit_generator(
     train_data_gen,
     epochs=10
 )
+
+if not os.path.exists('./ResultingModels'):
+    os.makedirs('./ResultingModels')
 
 model.save('./ResultingModels/ModelFromImageProcessorV2.h5')
 
