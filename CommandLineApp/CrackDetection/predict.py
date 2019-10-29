@@ -1,21 +1,20 @@
 import cv2
 import pickle
-import numpy as np
 from keras.models import load_model
 
-image_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\Images\Negatives\00001.jpg'
-model_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\Model\CNN_model.model'
-label_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\Model\CNN_labels.pickle'
+image_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\TestImages\09513.jpg'
+model_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\Model\crack.model'
+label_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\Model\crack.pickle'
 
 image = cv2.imread(image_path)
 
 output_img = image.copy()
 
-image = cv2.resize(image, (64, 64))
+image = cv2.resize(image, (32, 32))
 
 image = image.astype(float) / 255.0
 
-image = image.reshape((1, image.shape[0], image.shape[1], image.shape[2]))
+image = image.reshape((1, image.shape[0] * image.shape[1] * image.shape[2]))
 
 print("[INFO] loading network and label binarizer...")
 model = load_model(model_path)
