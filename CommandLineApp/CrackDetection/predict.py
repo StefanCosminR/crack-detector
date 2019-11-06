@@ -1,9 +1,9 @@
 import cv2
 import pickle
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 
-image_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\TestImages\09513.jpg'
-#image_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\TestImages\00404.jpg'
+#image_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\TestImages\09513.jpg'
+image_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\TestImages\00404.jpg'
 model_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\Model\crack.model'
 label_path = r'C:\Users\Serban\Desktop\crack-detector\CommandLineApp\Model\crack.pickle'
 

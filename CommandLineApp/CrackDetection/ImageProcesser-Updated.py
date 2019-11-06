@@ -7,10 +7,10 @@ from imutils import paths
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report
-from tensorflow.python.keras import Sequential
-from tensorflow.python.keras.layers.core import Dense
-from tensorflow.python.keras.optimizers import SGD
-from tensorflow.python.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.utils import to_categorical
 
 
 images = list()
