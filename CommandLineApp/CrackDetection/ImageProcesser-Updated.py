@@ -81,7 +81,7 @@ test_acc = model.evaluate(testX, testY, verbose=0)
 print(classification_report(testY.argmax(axis=1), predictions.argmax(axis=1), target_names=le.classes_))
 
 
-model_path = os.path.join(dirname, 'Model/crack.model')
+model_path = os.path.join(dirname, 'Model/crack.h5')
 label_path = os.path.join(dirname, 'Model/crack.pickle')
 
 print("[INFO] serializing network and label binarizer...")
