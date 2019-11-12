@@ -7,6 +7,7 @@ from imutils import paths
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report
+import ImageProcesserArhitecture
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
@@ -18,7 +19,19 @@ labels = list()
 
 dirname = os.path.dirname(os.path.dirname(__file__))
 
-data_path = os.path.join(dirname, 'Images')
+data_path = os.path.join(dirname, 'Images')    #fara un s la final
+
+if os.path.isdir(data_path) is False:
+        raise Exception("Folder not found")
+
+image_width = 32
+image_height = 32
+
+if (image_width is not 32) and (image_width is not 64):
+        raise Exception("Invalid image width")
+
+if (image_height is not 32) and (image_height is not 64):
+        raise Exception("Invalid image height")
 
 # incarcam imaginile in memorie
 
@@ -28,10 +41,19 @@ random.shuffle(images_path)
 
 
 for path in images_path:
-        image = cv2.imread(path)
+        try:
+                image = cv2.imread(path)
+        except cv2.error as e:
+                print(str(e))
+                raise
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        image = cv2.resize(image, (32, 32)).flatten()
+        try:
+                image = cv2.resize(image, (32, 32)).flatten()
+        except cv2.error as e:
+                print(str(e))
+                raise
+
         # mai sus se poate face .flatten() la imagini
 
         images.append(image)
@@ -62,10 +84,12 @@ model.add(Dense(1024, input_shape=(3072,), activation="sigmoid"))
 model.add(Dense(512, activation="sigmoid"))
 model.add(Dense(len(le.classes_), activation="softmax"))
 
+#model = ImageProcesserArhitecture.build_model(image_height, image_width, 3, classes=len(le.classes_))
+
 print(le.classes_)
 
 INIT_LR = 0.01
-EPOCHS = 75
+EPOCHS = 5
 
 print("[INFO] training network...")
 opt = SGD(lr=INIT_LR)
@@ -86,7 +110,13 @@ label_path = os.path.join(dirname, 'Model/crack.pickle')
 
 print("[INFO] serializing network and label binarizer...")
 model.save(model_path)
-f = open(label_path, "wb")
-f.write(pickle.dumps(le))
-f.close()
+
+try:
+        f = open(label_path, "wb")
+        f.write(pickle.dumps(le))
+        f.close()
+except Exception as e:
+        print(str(e))
+        raise
+
 
