@@ -102,5 +102,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-CommandLineApp/CrackDetection/.idea/misc.xml
-CommandLineApp/CrackDetection/.idea/CrackDetection.iml
+CommandLineApp/CrackDetection/.idea/*
