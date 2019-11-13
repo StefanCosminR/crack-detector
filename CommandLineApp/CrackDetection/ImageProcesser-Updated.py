@@ -79,12 +79,12 @@ trainY = to_categorical(trainY)
 testY = le.fit_transform(testY)
 testY = to_categorical(testY)
 
-model = Sequential()
-model.add(Dense(1024, input_shape=(3072,), activation="sigmoid"))
-model.add(Dense(512, activation="sigmoid"))
-model.add(Dense(len(le.classes_), activation="softmax"))
+#model = Sequential()
+#model.add(Dense(1024, input_shape=(3072,), activation="sigmoid"))
+#model.add(Dense(512, activation="sigmoid"))
+#model.add(Dense(len(le.classes_), activation="softmax"))
 
-#model = ImageProcesserArhitecture.build_model(image_height, image_width, 3, classes=len(le.classes_))
+model = ImageProcesserArhitecture.build_model(image_height, image_width, 3, classes=len(le.classes_))
 
 print(le.classes_)
 
