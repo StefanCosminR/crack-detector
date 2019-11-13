@@ -8,16 +8,26 @@ from tensorflow.keras.layers import Activation
 
 
 def build_model(height, width, channels, classes):
+
+    #model = Sequential()
+    #model.add(Dense(1024, input_shape=(3072,), activation="sigmoid"))
+    #model.add(Dense(512, activation="sigmoid"))
+    #model.add(Dense(classes, activation="softmax"))
+    #return model
+
+    inputshape = (32, 32, 2)
     model = Sequential()
-
-    inputshape = (height, width, channels)
-
     model.add(Conv2D(32, kernel_size=(3, 3), padding='same', input_shape=inputshape, use_bias=False))
     model.add(Activation('relu'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
+    model.add(Dense(classes))
+    model.add(Activation("softmax"))
+
+    return model
+"""
     model.add(Conv2D(64, (3, 3), padding="same", use_bias=False))
     model.add(Activation('relu'))
     model.add(BatchNormalization())
@@ -47,5 +57,6 @@ def build_model(height, width, channels, classes):
 
     model.add(Dense(classes))
     model.add(Activation("softmax"))
-
+    
     return model
+"""
