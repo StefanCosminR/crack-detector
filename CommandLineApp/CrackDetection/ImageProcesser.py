@@ -13,6 +13,7 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.utils import to_categorical
 
+
 def getImagesFolder(directorName):
     data_path = os.path.join(directorName, 'Images')  # fara un s la final
     if os.path.isdir(data_path) is False:
