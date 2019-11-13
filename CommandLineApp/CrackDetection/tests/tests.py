@@ -8,11 +8,17 @@ class TestStringMethods(unittest.TestCase):
     def test_folder_NOK(self):
         exists, directorName = ImageProcesser.getImagesFolder("")
         self.assertFalse(exists)
-        print("------------------  " + directorName)
 
     def test_folder_OK(self):
         exists, directorName = ImageProcesser.getImagesFolder(os.path.abspath(__file__ + "/../../../"))
         self.assertTrue(exists)
+
+    def test_model_rights(self):
+        self.assertFalse(ImageProcesser.checkModelWriteRights(""))
+
+    def test_model_rights2(self):
+        self.assertTrue(ImageProcesser.checkModelWriteRights(os.path.abspath(__file__ + "/../../../")))
+
 
     def test_isupper(self):
         self.assertTrue('FOO'.isupper())

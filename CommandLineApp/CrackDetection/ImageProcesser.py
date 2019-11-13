@@ -13,10 +13,6 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.utils import to_categorical
 
-images = list()
-labels = list()
-
-
 def getImagesFolder(directorName):
     data_path = os.path.join(directorName, 'Images')  # fara un s la final
     if os.path.isdir(data_path) is False:
@@ -25,7 +21,14 @@ def getImagesFolder(directorName):
     return True, data_path
 
 
+def checkModelWriteRights(model_path):
+    return os.access(model_path, os.W_OK)
+
+
 def createModel():
+    images = list()
+    labels = list()
+
     directorName = os.path.dirname(os.path.dirname(__file__))
     exists, data_path = getImagesFolder(directorName)
     if exists is False:
@@ -122,3 +125,6 @@ def createModel():
     except Exception as e:
         print(str(e))
         raise
+
+
+createModel()
