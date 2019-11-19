@@ -18,20 +18,21 @@ from PIL import ImageFile
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Dropout, Lambda
-from tensorflow.keras.layers import Conv2D, Conv2DTranspose, BatchNormalization
+from tensorflow.keras.layers import Conv2D, Conv2DTranspose, BatchNormalization, Activation, Cropping2D, UpSampling2D
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import concatenate
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from tensorflow.keras.backend import int_shape
 from tensorflow.keras import backend as K
 from tensorflow import keras
 
 import tensorflow as tf
 
 # Set some parameters
-batch_size = 32
-IMG_HEIGHT = 256
-IMG_WIDTH = 256
-IMG_CHANNELS = 3
+batch_size = 1
+IMG_HEIGHT = 128
+IMG_WIDTH = 128
+IMG_CHANNELS = 1
 
 dirname = os.path.dirname(os.path.dirname(__file__))
 
@@ -39,12 +40,12 @@ TRAIN_PATH = os.path.join(dirname, 'Images')
 
 train_image_generator = keras.preprocessing.image.ImageDataGenerator(
     rescale=1. / 255,
-    rotation_range=0.2,
-    width_shift_range=.05,
-    height_shift_range=.05,
+    rotation_range=0.1,
+    width_shift_range=.01,
+    height_shift_range=.01,
     horizontal_flip=True,
-    shear_range=0.05,
-    zoom_range=0.05,
+    shear_range=0.01,
+    zoom_range=0.01,
     validation_split=0.2,
     fill_mode='nearest'
 )  # Generator for our training data)
@@ -52,10 +53,9 @@ train_image_generator = keras.preprocessing.image.ImageDataGenerator(
 train_data_gen = train_image_generator.flow_from_directory(batch_size=batch_size,
                                                            directory=TRAIN_PATH,
                                                            shuffle=True,
-                                                           # color_mode="grayscale",
+                                                           color_mode="grayscale",
                                                            target_size=(IMG_HEIGHT, IMG_WIDTH),
-                                                           class_mode='binary',
-                                                           classes=["Positives", "Negatives"])
+                                                           class_mode='binary')
 
 # augmented_images = [train_data_gen[0][0][0] for i in range(5)]
 # imshow(augmented_images[0])
@@ -67,7 +67,7 @@ train_data_gen = train_image_generator.flow_from_directory(batch_size=batch_size
 inputs = Input((IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS))
 s = Lambda(lambda x: x / 255)(inputs)
 
-c1 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(inputs)
+c1 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(s)
 c1 = BatchNormalization()(c1)
 c1 = Dropout(0.1)(c1)
 c1 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c1)
@@ -133,13 +133,19 @@ c9 = Dropout(0.1)(c9)
 c9 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c9)
 c9 = BatchNormalization()(c9)
 
-outputs = Conv2D(1, (1, 1), activation='sigmoid')(c9)
+outputs = Conv2D(1, (1, 1), activation='softmax')(c9)
 
 model = Model(inputs=[inputs], outputs=[outputs])
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 model.summary()
 
 # Fit model
 # earlystopper = EarlyStopping(patience=15, verbose=1)
 # checkpointer = ModelCheckpoint('model_unet_checkpoint.h5', verbose=1, save_best_only=True)
+callbacks = [
+    # EarlyStopping(patience=10, verbose=1),
+    ReduceLROnPlateau(factor=0.1, patience=3, min_lr=0.00001, verbose=1),
+    ModelCheckpoint('model-tgs-salt.h5', verbose=1, save_best_only=True, save_weights_only=True)
+]
 results = model.fit(train_data_gen, epochs=5)
