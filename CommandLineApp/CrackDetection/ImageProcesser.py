@@ -13,6 +13,33 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.utils import to_categorical
 
+from pythonrv import rv
+
+
+def validateImagesFolder():
+    images_path = os.path.dirname(os.path.dirname(__file__))
+    images_path = os.path.join(images_path, 'Images')
+
+    fol_names = list()
+
+    for(folder) in os.listdir(images_path):
+        fol_names.append(folder)
+
+    if len(fol_names) != 2:
+        return False
+
+    if (fol_names[0] != 'Negatives' and fol_names[0] != 'Positives') or (fol_names[1] != 'Negatives' and fol_names[1] != 'Positives'):
+        return False
+
+    return True
+
+
+@rv.monitor(up=validateImagesFolder)
+@rv.spec(when=rv.POST)
+def simple_specifications(event):
+    assert type(event.fn.up.result) is bool
+    print("result of validation is bool: OK")
+
 
 def getImagesFolder(directorName):
     data_path = os.path.join(directorName, 'Images')  # fara un s la final
@@ -126,6 +153,5 @@ def createModel():
     except Exception as e:
         print(str(e))
         raise
-
-
-createModel()
+validateImagesFolder()
+# createModel()

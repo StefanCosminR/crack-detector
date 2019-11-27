@@ -2,6 +2,7 @@ import argparse
 
 __version__ = "0.1.0"
 
+
 def main(args):
     """ Main entry point of the app """
     print("Crack detection command line application...")
