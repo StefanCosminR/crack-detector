@@ -14,13 +14,22 @@ Requirements:
 How to run:
 
 - Change directory to CracksDetectionApp (`cd CracksDetectionApp`)
-- `python train.py`
+- `python trainAlg1.py`
+- `python trainAlg2.py`
 
 How to test:
 
 - Change directory to CracksDetectionApp (cd CracksDetectionApp)
-- `python predict.py`
+- `python predict.py --meta_file="./alg1_output/model_complete.meta" --CP_dir="./alg1_output"`
 - look into folder CracksDetectionApp/results for the resulting images 
+
+In order to test the other algorithm run:
+- `python predict.py --meta_file="./alg2_output/model_complete.meta" --CP_dir="./alg2_output"`
+
+To start the predictor as servers for each algorithm run the following commands:
+- `python predict.py --meta_file="./alg1_output/model_complete.meta" --CP_dir="./alg1_output" --start_as_server=True`
+- `python predict.py --meta_file="./alg2_output/model_complete.meta" --CP_dir="./alg2_output" --start_as_server=True --port=8081 --model_number=2`
+
 
 #### Project 2 Unet:
 Based on https://towardsdatascience.com/understanding-semantic-segmentation-with-unet-6be4f42d4b47
