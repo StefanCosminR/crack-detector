@@ -22,6 +22,35 @@ How to test:
 - `python predict.py`
 - look into folder CracksDetectionApp/results for the resulting images 
 
+#### Project 2 Unet:
+Based on https://towardsdatascience.com/understanding-semantic-segmentation-with-unet-6be4f42d4b47
+
+Requirements:
+- numpy	1.17.4
+- pandas	0.25.3
+- matplotlib	3.1.2
+- Pillow	6.2.1
+- tqdm	4.40.0
+- scikit-image	0.16.2
+- tensorflow	2.0.0
+
+How to run:
+- cd CommandLineApp/CrackDetection/
+- python ImageProcessorUsingUNET.py
+
+#### Project 3 V2:
+
+Requirements:
+- tensorflow	2.0.0
+- matplotlib	3.1.2
+- aspectlib	1.4.2
+
+How to run:
+- python CommandLineApp/CrackDetection/ImageProcessorV2.py
+
+How to test:
+- python CommandLineApp/CrackDetection/predictionV2.py
+
 google docs link : https://docs.google.com/document/d/1HZ3XukJdGuqtobCRUvc7KHZCh3Oun3Pu6DqvPCUoquE/edit?usp=sharing
 
 trello link : https://trello.com/b/60KTWa0j/crack-detector
