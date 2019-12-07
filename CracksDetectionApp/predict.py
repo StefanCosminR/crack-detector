@@ -81,7 +81,7 @@ class Dataset_test:
 
     def load_images(self, image_paths):
         # Load the images from disk.
-        images = [cv2.imread(path) for path in image_paths]
+        images = [cv2.resize(cv2.imread(path), (128, 128)) for path in image_paths]
 
         # Convert to a numpy array and returns it in the form of [num_images,size,size,channel]
         return np.asarray(images)
@@ -129,11 +129,13 @@ def main(args):
             x = graph.get_operation_by_name("x").outputs[0]
             predictions = graph.get_operation_by_name("predictions").outputs[0]
 
+            image_size = 128
+
             # Take one image at a time, pass it through the network and save it
             for counter, image in enumerate(test_images):
-                broken_image, h, w, h_no, w_no = break_image(image, 128)
+                broken_image, h, w, h_no, w_no = break_image(image, image_size)
 
-                output_image = np.zeros((h_no * 128, w_no * 128, 3), dtype=np.uint8)
+                output_image = np.zeros((h_no * image_size, w_no * image_size, 3), dtype=np.uint8)
 
                 feed_dict = {x: broken_image}
                 batch_predictions = sess.run(predictions, feed_dict=feed_dict)
@@ -143,9 +145,9 @@ def main(args):
                 for i in range(0, h_no):
                     for j in range(0, w_no):
                         a = matrix_pred[i, j]
-                        output_image[128 * i:128 * (i + 1), 128 * j:128 * (j + 1), :] = 1 - a
+                        output_image[image_size * i:image_size * (i + 1), image_size * j:image_size * (j + 1), :] = 1 - a
 
-                cropped_image = image[0:h_no * 128, 0:w_no * 128, :]
+                cropped_image = image[0:h_no * image_size, 0:w_no * image_size, :]
                 pred_image = np.multiply(output_image, cropped_image)
 
                 print("Saved {} Image(s)".format(counter + 1))
