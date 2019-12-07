@@ -8,7 +8,17 @@ import sys
 import tensorflow as tf
 
 from dataset import cache
-from train import Model
+
+import http.server
+from http.server import BaseHTTPRequestHandler
+import socketserver
+
+PORT = 8080
+
+tf_session = None
+tf_predictions = None
+tf_x = None
+image_size = 128
 
 
 def break_image(test_image, size):
@@ -26,13 +36,59 @@ def break_image(test_image, size):
     return broken_image, h, w, h_no, w_no
 
 
+class PredictImage(BaseHTTPRequestHandler):
+
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
+        img_data = self.rfile.read(content_length)  # <--- Gets the data itself
+
+        nparr = np.fromstring(img_data, np.uint8)
+        img_np = cv2.imdecode(nparr, 3)
+
+        broken_image, h, w, h_no, w_no = break_image(img_np, image_size)
+
+        output_image = np.zeros((h_no * image_size, w_no * image_size, 3), dtype=np.uint8)
+
+        x = tf_x
+        feed_dict = {x: broken_image}
+        batch_predictions = tf_session.run(tf_predictions, feed_dict=feed_dict)
+
+        matrix_pred = batch_predictions.reshape((h_no, w_no))
+        # Concentrate after this for post processing
+        for i in range(0, h_no):
+            for j in range(0, w_no):
+                a = matrix_pred[i, j]
+                output_image[image_size * i:image_size * (i + 1), image_size * j:image_size * (j + 1), :] = 1 - a
+
+        cropped_image = img_np[0:h_no * image_size, 0:w_no * image_size, :]
+        pred_image = np.multiply(output_image, cropped_image)
+
+        is_success, buffer = cv2.imencode(".jpg", pred_image)
+
+        self.send_response(200)
+        self.send_header('Content-type', 'image/jpeg')
+        self.end_headers()
+
+        self.wfile.write(buffer)
+
+
 class Dataset_test:
-    def __init__(self, in_dir, exts='.jpg'):
+    def __init__(self, in_dir, exts='.jpg', model_number=1):
         # Extend the input directory to the full path.
         in_dir = os.path.abspath(in_dir)
 
         # Input directory.
         self.in_dir = in_dir
+
+        model = None
+
+        print("LOADING DATA TEST")
+        if model_number == 1:
+            from trainAlg1 import Model
+            print("imported Model 1")
+        elif model_number == 2:
+            from trainAlg2 import Model
+            print("imported Model 2")
 
         model = Model(in_dir)
         # Convert all file-extensions to lower-case.
@@ -81,7 +137,8 @@ class Dataset_test:
 
     def load_images(self, image_paths):
         # Load the images from disk.
-        images = [cv2.resize(cv2.imread(path), (128, 128)) for path in image_paths]
+        # images = [cv2.resize(cv2.imread(path), (128, 128)) for path in image_paths]
+        images = [cv2.imread(path) for path in image_paths]
 
         # Convert to a numpy array and returns it in the form of [num_images,size,size,channel]
         return np.asarray(images)
@@ -93,6 +150,9 @@ def parse_arguments():
     parser.add_argument('--meta_file', dest='meta_file', type=str, default='./model_complete.meta')
     parser.add_argument('--CP_dir', dest='chk_point_dir', type=str, default='.')
     parser.add_argument('--save_dir', type=str, default='./results')
+    parser.add_argument('--start_as_server', type=bool, default=False)
+    parser.add_argument('--model_number', type=int, default=1)
+    parser.add_argument('--port', type=int, default=8080)
     return parser.parse_args()
 
 
@@ -101,8 +161,12 @@ def main(args):
     args = parse_arguments()
     dataset_test = cache(cache_path='dataset_cache_test.pkl',
                          fn=Dataset_test,
-                         in_dir=args.in_dir)
+                         in_dir=args.in_dir,
+                         model_number=args.model_number)
     test_images = dataset_test.images
+
+    global PORT
+    PORT = args.port
 
     try:
         os.stat(args.save_dir)
@@ -129,8 +193,25 @@ def main(args):
             x = graph.get_operation_by_name("x").outputs[0]
             predictions = graph.get_operation_by_name("predictions").outputs[0]
 
-            image_size = 128
+            global tf_session
+            global tf_predictions
+            global tf_x
 
+            tf_session = sess
+            tf_predictions = predictions
+            tf_x = x
+            if args.start_as_server:
+                with socketserver.TCPServer(("", PORT), PredictImage) as httpd:
+                    print("serving at port", PORT)
+                    try:
+                        httpd.serve_forever()
+                    except KeyboardInterrupt:
+                        pass
+                    httpd.server_close()
+                    print("Closing...")
+                    return
+
+            global image_size
             # Take one image at a time, pass it through the network and save it
             for counter, image in enumerate(test_images):
                 broken_image, h, w, h_no, w_no = break_image(image, image_size)
