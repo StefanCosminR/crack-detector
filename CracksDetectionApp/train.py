@@ -91,6 +91,21 @@ def flatten_layer(layer):
 
 ####################################################
 
+def new_dropout_layer(x, rate):
+    layer = tf.nn.dropout(
+        x,
+        keep_prob=None,
+        noise_shape=None,
+        seed=None,
+        name=None,
+        rate=rate
+    )
+
+    return layer
+
+####################################################
+
+
 class Model:
     def __init__(self, in_dir, save_folder=None):
         dataset = load_cached(cache_path='dataset_cache.pkl', in_dir=in_dir)
