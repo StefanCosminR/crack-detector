@@ -3,6 +3,11 @@ A nice crack detector :)
 
 How to run:
 
+#### WebApp
+- `python predict.py --meta_file="./alg1_output/model_complete.meta" --CP_dir="./alg1_output" --start_as_server=True`
+- `python predict.py --meta_file="./alg2_output/model_complete.meta" --CP_dir="./alg2_output" --start_as_server=True --port=8081 --model_number=2`
+- open WebApp/index.html in a browser disabling CORS, here is how to do it for chrome: https://alfilatov.com/posts/run-chrome-without-cors/
+
 #### Project 1:
 Based on https://www.researchgate.net/publication/315613676_Deep_Learning-Based_Crack_Damage_Detection_Using_Convolutional_Neural_Networks?fbclid=IwAR1NqL8c7qwKNCFxAW7E9BAW6c98DKCSEfdgoYAB0WYY5iaQVSTqxBMVqCY
 
