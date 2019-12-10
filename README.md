@@ -77,5 +77,3 @@ Members:
 - Serban Mihai Botez (contact: serbanbotez2@gmail.com)
 - Stefan Cosmin Romanescu (contact: stefancosmin.romanescu@gmail.com)
 - Florin Cristian Finaru (contact: florincristian.finaru@gmail.com)
-- Mihail-Ciprian Mircea (contact: m.ciprian_95@yahoo.com)
-
