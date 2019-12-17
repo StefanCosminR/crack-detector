@@ -5,11 +5,13 @@ import tensorflow as tf
 import numpy as np
 import time
 from datetime import timedelta
-from dataset import load_cached
 from matplotlib.image import imread
 import cv2, sys, argparse
 import os
 
+
+def checkModelWriteRights(model_path):
+    return os.access(model_path, os.W_OK)
 
 # Initialzing the conv and max_pool layers
 #####################################################
@@ -24,7 +26,7 @@ def new_conv_layer(input,  # The previous layer.
     shape = [filter_size, filter_size, num_input_channels, num_filters]
 
     # Create new weights aka. filters with the given shape.
-    weights = tf.Variable(tf.truncated_normal(shape, stddev=0.05))
+    weights = tf.Variable(tf.random.truncated_normal(shape, stddev=0.05))
 
     # Create new biases, one for each filter.
     biases = tf.Variable(tf.constant(0.05, shape=[num_filters]))
@@ -44,11 +46,11 @@ def new_conv_layer(input,  # The previous layer.
 
 
 ####################################################
-def max_pool(layer, ksize, strides):
+def max_pool(layer, ksize, strides, padding='VALID'):
     layer = tf.nn.max_pool(value=layer,
                            ksize=ksize,
                            strides=strides,
-                           padding='VALID')
+                           padding=padding)
     return layer
 
 
@@ -59,7 +61,7 @@ def new_fc_layer(input,  # The previous layer.
                  use_relu=True):  # Use Rectified Linear Unit (ReLU)?
 
     # Create new weights and biases.
-    weights = tf.Variable(tf.truncated_normal([num_inputs, num_outputs], stddev=0.05))
+    weights = tf.Variable(tf.random.truncated_normal([num_inputs, num_outputs], stddev=0.05))
     biases = tf.Variable(tf.constant(0.05, shape=[num_outputs]))
 
     # Include Drop-out as well to avoid overfitting
@@ -113,6 +115,8 @@ def new_dropout_layer(x, rate):
 
 class Model:
     def __init__(self, in_dir, save_folder=None):
+        from dataset import load_cached
+
         dataset = load_cached(cache_path='dataset_cache.pkl', in_dir=in_dir)
         self.num_classes = dataset.num_classes
 
@@ -125,12 +129,12 @@ class Model:
         self.train_batch_size = 64
         self.test_batch_size = 64
         ###################################################################################
-        self.x = tf.placeholder(tf.float32, shape=[None, self.img_size, self.img_size, self.num_channels], name='x')
+        self.x = tf.compat.v1.placeholder(tf.float32, shape=[None, self.img_size, self.img_size, self.num_channels], name='x')
         self.x_image = tf.reshape(self.x, [-1, self.img_size, self.img_size, self.num_channels])
-        self.y_true = tf.placeholder(tf.float32, shape=[None, self.num_classes], name='y_true')
+        self.y_true = tf.compat.v1.placeholder(tf.float32, shape=[None, self.num_classes], name='y_true')
         self.y_true_cls = tf.argmax(self.y_true, axis=1)  # The True class Value
-        self.keep_prob = tf.placeholder(tf.float32)
-        self.keep_prob_2 = tf.placeholder(tf.float32)
+        self.keep_prob = tf.compat.v1.placeholder(tf.float32)
+        self.keep_prob_2 = tf.compat.v1.placeholder(tf.float32)
         self.y_pred_cls = None
         self.train_images = self.load_images(image_paths_train)
         self.test_images = self.load_images(image_paths_test)
@@ -147,15 +151,15 @@ class Model:
 
     def define_model(self):
         # Convolution Layer 1
-        filter_size1 = 10  # Convolution filters are 10 x 10
+        filter_size1 = 20  # Convolution filters are 10 x 10
         num_filters1 = 24  # There are 24 of these filters.
 
         # Convolutional Layer 2
-        filter_size2 = 7  # Convolution filters are 7 x 7
+        filter_size2 = 15  # Convolution filters are 7 x 7
         num_filters2 = 48  # There are 48 of these filters.
 
         # Convolutional Layer 3
-        filter_size3 = 11  # Convolution filters are 11 x 11
+        filter_size3 = 10  # Convolution filters are 11 x 11
         num_filters3 = 96  # There are 96 of these filters.
         # Fully-connected layer
         fc_size = 96
@@ -163,31 +167,38 @@ class Model:
         layer_conv1 = new_conv_layer(input=self.x_image,
                                      num_input_channels=self.num_channels,
                                      filter_size=filter_size1,
-                                     num_filters=num_filters1)
+                                     num_filters=num_filters1,
+                                     padding="SAME")
         # Max Pool Layer
-        ksize1 = [1, 4, 4, 1]
+        ksize1 = [1, 7, 7, 1]
         strides1 = [1, 2, 2, 1]
-        layer_max_pool1 = max_pool(layer_conv1, ksize1, strides1)
+        layer_max_pool1 = max_pool(layer_conv1, ksize1, strides1, padding='SAME')
 
         # Convolutional Layer 2
         layer_conv2 = new_conv_layer(input=layer_max_pool1,
                                      num_input_channels=num_filters1,
                                      filter_size=filter_size2,
-                                     num_filters=num_filters2)
+                                     num_filters=num_filters2,
+                                     use_relu=True)
         # Max Pool Layer
-        ksize2 = [1, 2, 2, 1]
-        strides2 = [1, 1, 1, 1]
+        ksize2 = [1, 4, 4, 1]
+        strides2 = [1, 2, 2, 1]
         layer_max_pool2 = max_pool(layer_conv2, ksize2, strides2)
 
         # Convolutional Layer 3
         layer_conv3 = new_conv_layer(input=layer_max_pool2,
                                      num_input_channels=num_filters2,
                                      filter_size=filter_size3,
-                                     num_filters=num_filters3)
+                                     num_filters=num_filters3,
+                                     use_relu=True)
+
+        dropout_latyer1 = new_dropout_layer(layer_conv3, 0.5)
+
         # Flatten
-        layer_flat, num_features = flatten_layer(layer_conv3)
+        layer_flat, num_features = flatten_layer(dropout_latyer1)
         # Relu Layer
         layer_relu = tf.nn.relu(layer_flat)
+
         # Fully-Connected Layer1
         layer_fc1 = new_fc_layer(input=layer_relu,
                                  num_inputs=num_features,
@@ -283,6 +294,8 @@ class Model:
             for i in range(total_iterations,
                            total_iterations + num_iterations):
 
+                print("iteration:", i)
+
                 # Get a batch of training examples.
                 # x_batch now holds a batch of images and
                 # y_true_batch are the true labels for those images.
@@ -334,9 +347,10 @@ class Model:
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Training Network')
-    parser.add_argument('--in_dir', dest='in_dir', type=str, default='images')
-    parser.add_argument('--iter', dest='num_iterations', type=int, default=150)
-    parser.add_argument('--save_folder', dest='save_folder', type=str, default="./alg2_output")
+    parser.add_argument('script')
+    parser.add_argument('--in_dir', dest='in_dir', type=str, default='image__big_set')
+    parser.add_argument('--iter', dest='num_iterations', type=int, default=15000)
+    parser.add_argument('--save_folder', dest='save_folder', type=str, default="alg1_output")
     return parser.parse_args()
 
 

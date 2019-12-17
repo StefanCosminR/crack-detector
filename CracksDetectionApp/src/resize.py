@@ -3,8 +3,8 @@ import os
 
 from PIL import Image
 
-path = "images"
-output_path = "images_resized"
+path = "images/set2/no_crack/test/"
+output_path = "images_resized/set2/no_crack/test/"
 dirs = os.listdir(path)
 
 
