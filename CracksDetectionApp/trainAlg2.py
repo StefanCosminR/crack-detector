@@ -5,7 +5,7 @@ import tensorflow as tf
 import numpy as np
 import time
 from datetime import timedelta
-from dataset import load_cached
+from CracksDetectionApp.dataset import load_cached
 from matplotlib.image import imread
 import cv2, sys, argparse
 import os

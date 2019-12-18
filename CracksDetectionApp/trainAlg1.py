@@ -5,11 +5,13 @@ import tensorflow as tf
 import numpy as np
 import time
 from datetime import timedelta
-from dataset import load_cached
+from CracksDetectionApp.dataset import load_cached
 from matplotlib.image import imread
 import cv2, sys, argparse
 import os
 
+def checkModelWriteRights(model_path):
+    return os.access(model_path, os.W_OK)
 
 # Initialzing the conv and max_pool layers
 #####################################################
