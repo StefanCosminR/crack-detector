@@ -272,7 +272,9 @@ class Model:
 
         # Classification accuracy is the number of correctly classified
         # images divided by the total number of images in the test-set.
-        acc = float(correct.sum()) / num_test
+        acc = 0
+        if num_test != 0:
+            acc = float(correct.sum()) / num_test
 
         # Print the accuracy.
         msg = "Accuracy on Test-Set: {0:.1%} ({1} / {2})"
@@ -285,6 +287,7 @@ class Model:
         saver = tf.train.Saver()
         # Start-time used for printing time-usage below.
         start_time = time.time()
+        end_time = time.time()
         with tf.Session() as sess:
             # global_step_int = tf.train.get_global_step(sess.graph)
             sess.run(tf.global_variables_initializer())
