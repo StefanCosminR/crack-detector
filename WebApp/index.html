@@ -20,7 +20,9 @@
     <div class="search-area">
         <div class="input-group">
             <div class="input-group-prepend">
-                <button type="button" class="input-group-text" id="inputGroupFileAddon01" onclick="previewFile()">Upload</button>
+                <button type="button" class="input-group-text" id="inputGroupFileAddon01" onclick="previewFile()">
+                    Upload
+                </button>
             </div>
             <div class="custom-file">
                 <input type="file" class="custom-file-input" id="inputGroupFile01"
@@ -28,65 +30,75 @@
                 <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
             </div>
         </div>
-<!--        <input type="file" class="form-control">-->
-<!--        <button id="submit-image" onclick="previewFile()" class="btn btn-primary" type="button" >Analyze</button>-->
+        <!--        <input type="file" class="form-control">-->
+        <!--        <button id="submit-image" onclick="previewFile()" class="btn btn-primary" type="button" >Analyze</button>-->
     </div>
     <div class="dropdown-divider"></div>
+</div>
+<div class="container-fluid">
     <div class="resulting-images">
         <div class="row">
 
-            <div class="col-lg-4 col-md-4 col-xs-4 thumb">
+            <div class="col-lg-6 col-md-6 col-xs-6 thumb">
                 <a class="thumbnail" href="#">
                     <p>Original image</p>
 
                     <img id='output' class="img-responsive" src="http://placehold.it/400x300" alt="">
                 </a>
             </div>
-            <div class="col-lg-4 col-md-4 col-xs-4 thumb">
+            <div class="col-lg-6 col-md-6 col-xs-6 thumb">
                 <a class="thumbnail" href="#">
                     <p>Result from algorithm 1</p>
                     <img id='output1' class="img-responsive" src="http://placehold.it/400x300" alt="">
                 </a>
             </div>
-            <div class="col-lg-4 col-md-4 col-xs-4 thumb">
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-xs-6 thumb">
                 <a class="thumbnail" href="#">
                     <p>Result from algorithm 2</p>
                     <img id='output2' class="img-responsive" src="http://placehold.it/400x300" alt="">
                 </a>
             </div>
-        <img >
+            <div class="col-lg-6 col-md-6 col-xs-6 thumb">
+                <a class="thumbnail" href="#">
+                    <p>Result from algorithm 2 with 16 iterations</p>
+                    <img id='output3' class="img-responsive" src="http://placehold.it/400x300" alt="">
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
-    <style>
+<style>
 
-        body {
-            margin-top: 15%;
-        }
+    body {
+        margin-top: 15%;
+    }
 
-        .resulting-images {
-            margin: 25px 0 25px 0;
-        }
+    .resulting-images {
+        margin: 25px 0 25px 0;
+    }
 
-        .img-responsive {
-            max-width: 95%;
-        }
+    .img-responsive {
+        max-width: 95%;
+    }
 
-        .search-area {
-            display: flex;
-        }
+    .search-area {
+        display: flex;
+    }
 
-        .search-area > input {
-            flex-grow: 5;
-            margin-right: 10px;
-        }
+    .search-area > input {
+        flex-grow: 5;
+        margin-right: 10px;
+    }
 
-        .search-area > button {
-            flex-grow: 1;
-            margin-left: 10px;
-        }
+    .search-area > button {
+        flex-grow: 1;
+        margin-left: 10px;
+    }
 
-    </style>
+</style>
 
 <script>
     function previewFile() {
@@ -98,6 +110,7 @@
 
             askServer1(reader);
             askServer2(reader);
+            askServer3(reader);
             preview.src = arrayBufferToImageURL(reader.result);
         }, false);
 
@@ -110,7 +123,7 @@
         const preview1 = document.getElementById('output1');
 
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", 'http://localhost:8081', true);
+        xhr.open("POST", 'http://localhost:8080', true);
         xhr.responseType = "arraybuffer";
 
         xhr.onreadystatechange = function () { // Call a function when the state changes.
@@ -126,7 +139,23 @@
         const preview2 = document.getElementById('output2');
 
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", 'http://localhost:8080', true);
+        xhr.open("POST", 'http://localhost:8081', true);
+        xhr.responseType = "arraybuffer";
+
+        xhr.onreadystatechange = function () { // Call a function when the state changes.
+            if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+                preview2.src = arrayBufferToImageURL(this.response)
+            }
+        };
+
+        xhr.send(new Int8Array(reader.result));
+    }
+
+    function askServer3(reader) {
+        const preview2 = document.getElementById('output3');
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", 'http://localhost:8082', true);
         xhr.responseType = "arraybuffer";
 
         xhr.onreadystatechange = function () { // Call a function when the state changes.

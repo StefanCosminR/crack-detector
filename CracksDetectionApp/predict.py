@@ -19,6 +19,7 @@ tf_session = None
 tf_predictions = None
 tf_x = None
 image_size = 128
+iterations = 1
 
 
 def break_image(test_image, size):
@@ -36,6 +37,7 @@ def break_image(test_image, size):
     return broken_image, h, w, h_no, w_no
 
 
+counter = 0
 class PredictImage(BaseHTTPRequestHandler):
 
     def do_POST(self):
@@ -51,14 +53,24 @@ class PredictImage(BaseHTTPRequestHandler):
 
         x = tf_x
         feed_dict = {x: broken_image}
-        batch_predictions = tf_session.run(tf_predictions, feed_dict=feed_dict)
+        predictions_matrices = []
+        global iterations
 
-        matrix_pred = batch_predictions.reshape((h_no, w_no))
+        for i in range(iterations):
+            batch_predictions = tf_session.run(tf_predictions, feed_dict=feed_dict)
+
+            matrix_pred = batch_predictions.reshape((h_no, w_no))
+            predictions_matrices.append(matrix_pred)
+
         # Concentrate after this for post processing
         for i in range(0, h_no):
             for j in range(0, w_no):
-                a = matrix_pred[i, j]
-                output_image[image_size * i:image_size * (i + 1), image_size * j:image_size * (j + 1), :] = 1 - a
+                numbers = map(lambda matrix: matrix[i, j], predictions_matrices)
+                the_sum = sum(numbers)
+                keep = 1
+                if the_sum != 0:
+                    keep = 0
+                output_image[image_size * i:image_size * (i + 1), image_size * j:image_size * (j + 1), :] = keep
 
         cropped_image = img_np[0:h_no * image_size, 0:w_no * image_size, :]
         pred_image = np.multiply(output_image, cropped_image)
@@ -67,8 +79,13 @@ class PredictImage(BaseHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header('Content-type', 'image/jpeg')
+        self.send_header('Content-Length', len(buffer))
         self.end_headers()
 
+        # print("request is done, sending back", buffer)
+        # global counter
+        # cv2.imwrite('/Users/stefancosmin/Faculty/IP/crack-detector/CracksDetectionApp/results/' + str(counter) + 'img.jpg', buffer)
+        # counter += 1
         self.wfile.write(buffer)
 
 
@@ -153,6 +170,7 @@ def parse_arguments():
     parser.add_argument('--start_as_server', type=bool, default=False)
     parser.add_argument('--model_number', type=int, default=1)
     parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--iterations', type=int, default=1)
     return parser.parse_args()
 
 
@@ -167,6 +185,9 @@ def main(args):
 
     global PORT
     PORT = args.port
+    global iterations
+
+    iterations = args.iterations
 
     try:
         os.stat(args.save_dir)
@@ -175,7 +196,7 @@ def main(args):
 
     graph = tf.Graph()
     with graph.as_default():
-        with tf.Session() as sess:
+        with tf.Session(config=tf.ConfigProto(inter_op_parallelism_threads=16, intra_op_parallelism_threads=16)) as sess:
             # import the model dir
             try:
                 file_ = Path(args.meta_file)
