@@ -3,7 +3,7 @@ import os
 
 from PIL import Image
 
-path = "images"
+path = "../../CracksDetectionApp/images"
 output_path = "images_resized"
 dirs = os.listdir(path)
 

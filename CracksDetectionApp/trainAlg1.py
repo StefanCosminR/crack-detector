@@ -5,11 +5,13 @@ import tensorflow as tf
 import numpy as np
 import time
 from datetime import timedelta
-from dataset import load_cached
+from CracksDetectionApp.dataset import load_cached
 from matplotlib.image import imread
 import cv2, sys, argparse
 import os
 
+def checkModelWriteRights(model_path):
+    return os.access(model_path, os.W_OK)
 
 # Initialzing the conv and max_pool layers
 #####################################################
@@ -270,7 +272,9 @@ class Model:
 
         # Classification accuracy is the number of correctly classified
         # images divided by the total number of images in the test-set.
-        acc = float(correct.sum()) / num_test
+        acc = 0
+        if num_test != 0:
+            acc = float(correct.sum()) / num_test
 
         # Print the accuracy.
         msg = "Accuracy on Test-Set: {0:.1%} ({1} / {2})"
@@ -283,6 +287,7 @@ class Model:
         saver = tf.train.Saver()
         # Start-time used for printing time-usage below.
         start_time = time.time()
+        end_time = time.time()
         with tf.Session() as sess:
             # global_step_int = tf.train.get_global_step(sess.graph)
             sess.run(tf.global_variables_initializer())
