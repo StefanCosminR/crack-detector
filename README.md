@@ -65,7 +65,11 @@ How to run:
 How to test:
 - python CommandLineApp/CrackDetection/predictionV2.py
 
+technical report link : https://docs.google.com/document/d/1XFI4-NG3JoQ1_NO4GCPsOfUy0MokdtFchDorpWL-vLI/edit?fbclid=IwAR0nZoZapOnE3ei6PkDeUQHi26dwDNDQne-qzYXeWncD7e6qYNYw2_YZ4h8
+
 google docs link : https://docs.google.com/document/d/1HZ3XukJdGuqtobCRUvc7KHZCh3Oun3Pu6DqvPCUoquE/edit?usp=sharing
+
+presentation link : https://docs.google.com/presentation/d/1DjbLFpMnE6zBXJQ2NxbrZQuKOJR_Lwlu5tKPKM8E8As/edit?fbclid=IwAR3YqGYsOe-zBtoFLWWVQR8RJFR6HVrujhF05Yt-fmvpuGBRf9jjZQ8cPVc#slide=id.p2
 
 trello link : https://trello.com/b/60KTWa0j/crack-detector
 
