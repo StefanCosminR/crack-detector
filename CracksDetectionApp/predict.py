@@ -177,11 +177,7 @@ def parse_arguments():
 def main(args):
     # File names are saved into a cache file
     args = parse_arguments()
-    dataset_test = cache(cache_path='dataset_cache_test.pkl',
-                         fn=Dataset_test,
-                         in_dir=args.in_dir,
-                         model_number=args.model_number)
-    test_images = dataset_test.images
+
 
     global PORT
     PORT = args.port
@@ -231,29 +227,34 @@ def main(args):
                     httpd.server_close()
                     print("Closing...")
                     return
+            else:
+                global image_size
+                dataset_test = cache(cache_path='dataset_cache_test.pkl',
+                                     fn=Dataset_test,
+                                     in_dir=args.in_dir,
+                                     model_number=args.model_number)
+                test_images = dataset_test.images
+                # Take one image at a time, pass it through the network and save it
+                for counter, image in enumerate(test_images):
+                    broken_image, h, w, h_no, w_no = break_image(image, image_size)
 
-            global image_size
-            # Take one image at a time, pass it through the network and save it
-            for counter, image in enumerate(test_images):
-                broken_image, h, w, h_no, w_no = break_image(image, image_size)
+                    output_image = np.zeros((h_no * image_size, w_no * image_size, 3), dtype=np.uint8)
 
-                output_image = np.zeros((h_no * image_size, w_no * image_size, 3), dtype=np.uint8)
+                    feed_dict = {x: broken_image}
+                    batch_predictions = sess.run(predictions, feed_dict=feed_dict)
 
-                feed_dict = {x: broken_image}
-                batch_predictions = sess.run(predictions, feed_dict=feed_dict)
+                    matrix_pred = batch_predictions.reshape((h_no, w_no))
+                    # Concentrate after this for post processing
+                    for i in range(0, h_no):
+                        for j in range(0, w_no):
+                            a = matrix_pred[i, j]
+                            output_image[image_size * i:image_size * (i + 1), image_size * j:image_size * (j + 1), :] = 1 - a
 
-                matrix_pred = batch_predictions.reshape((h_no, w_no))
-                # Concentrate after this for post processing
-                for i in range(0, h_no):
-                    for j in range(0, w_no):
-                        a = matrix_pred[i, j]
-                        output_image[image_size * i:image_size * (i + 1), image_size * j:image_size * (j + 1), :] = 1 - a
+                    cropped_image = image[0:h_no * image_size, 0:w_no * image_size, :]
+                    pred_image = np.multiply(output_image, cropped_image)
 
-                cropped_image = image[0:h_no * image_size, 0:w_no * image_size, :]
-                pred_image = np.multiply(output_image, cropped_image)
-
-                print("Saved {} Image(s)".format(counter + 1))
-                cv2.imwrite(os.path.join(args.save_dir, 'outfile_{}.jpg'.format(counter + 1)), pred_image)
+                    print("Saved {} Image(s)".format(counter + 1))
+                    cv2.imwrite(os.path.join(args.save_dir, 'outfile_{}.jpg'.format(counter + 1)), pred_image)
 
 
 if __name__ == '__main__':
